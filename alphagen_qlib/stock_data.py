@@ -56,9 +56,14 @@ class StockData:
         start_index = cal.searchsorted(pd.Timestamp(self._start_time))  # type: ignore
         end_index = cal.searchsorted(pd.Timestamp(self._end_time))  # type: ignore
         real_start_time = cal[start_index - self.max_backtrack_days]
+        # 确保 end_index 不超出数组范围
+        if end_index >= len(cal):
+            end_index = len(cal) - 1  # 将 end_index 限制在有效范围内
         if cal[end_index] != pd.Timestamp(self._end_time):
             end_index -= 1
-        real_end_time = cal[end_index + self.max_future_days]
+        # 确保 end_index + self.max_future_days 不超出数组大小
+        real_end_index = min(end_index + self.max_future_days, len(cal) - 1)
+        real_end_time = cal[real_end_index]  # 获取真实结束时间
         return (QlibDataLoader(config=exprs)  # type: ignore
                 .load(self._instrument, real_start_time, real_end_time))
 

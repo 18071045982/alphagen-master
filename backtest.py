@@ -1,4 +1,4 @@
-from datetime import datetime
+import json
 from typing import Optional, TypeVar, Callable, Optional
 import os
 import pickle
@@ -8,11 +8,12 @@ from qlib.backtest import backtest, executor as exec
 from qlib.contrib.evaluate import risk_analysis
 from qlib.contrib.report.analysis_position import report_graph
 from alphagen.data.expression import *
+from alphagen_qlib.calculator import QLibStockDataCalculator
 
 from alphagen_qlib.stock_data import StockData
 from alphagen_generic.features import *
 from alphagen_qlib.strategy import TopKSwapNStrategy
-
+from alphagen_qlib.utils import load_recent_data, load_alpha_pool_by_path
 
 _T = TypeVar("_T")
 
@@ -48,8 +49,15 @@ class BacktestResult(dict):
     annual_excess_return: float
     excess_max_drawdown: float
 
-    # def __str__(self):
-    #     return f"BacktestResult(sharpe={self.sharpe}, annual_return={self.annual_return}, max_drawdown={self.max_drawdown}, information_ratio={self.information_ratio}, annual_excess_return={self.annual_excess_return}, excess_max_drawdown={self.excess_max_drawdown})"
+    def to_dict(self):
+        return {
+            "sharpe": getattr(self, "sharpe", None),  # If attribute doesn't exist, return None
+            "annual_return": getattr(self, "annual_return", None),
+            "max_drawdown": getattr(self, "max_drawdown", None),
+            "information_ratio": getattr(self, "information_ratio", None),
+            "annual_excess_return": getattr(self, "annual_excess_return", None),
+            "excess_max_drawdown": getattr(self, "excess_max_drawdown", None),
+        }
 
 
 class QlibBacktest:
@@ -121,9 +129,10 @@ class QlibBacktest:
         result = self._analyze_report(report)
         graph = report_graph(report, show_notebook=False)[0]
         if output_prefix is not None:
-            dump_pickle(output_prefix + "-report.pkl", lambda: report, True)
+            report.to_csv(output_prefix + "-report.csv", index=False)
+            # dump_pickle(output_prefix + "-report.pkl", lambda: report, True)
             dump_pickle(output_prefix + "-graph.pkl", lambda: graph, True)
-            write_all_text(output_prefix + "-result.json", result)
+            write_all_text(output_prefix + "-result.json", json.dumps(result.to_dict(), ensure_ascii=False, indent=4))
 
         print(report)
         print(result)
@@ -146,15 +155,46 @@ class QlibBacktest:
         )
 
 
-if __name__ == "__main__":
+def fun1():
     qlib_backtest = QlibBacktest()
-
     data = StockData(instrument='csi300',
-                     start_time='2023-01-01',
-                     end_time='2023-12-31')
+                     start_time='2021-01-01',
+                     end_time='2022-12-31')
+    # 因子组合
+    POOL_PATH = '/home/kk/project/alphagen/checkpoint/new_all_5_2_20241202160424/100352_steps_pool.json'
+    # data, latest_date = load_recent_data(instrument='csi300', window_size=365, offset=1)
+    # pd.DataFrame(data.data.cpu().numpy()).to_csv('/home/kk/project/alphagen/file/data_cpu.csv')
+    calculator = QLibStockDataCalculator(data=data, target=None)
+    exprs, weights = load_alpha_pool_by_path(POOL_PATH)
+    ensemble_alpha = calculator.make_ensemble_alpha(exprs, weights)
+    # ensemble_alpha_cpu = ensemble_alpha.cpu()
+    # pd.DataFrame(ensemble_alpha_cpu.numpy()).to_csv('/home/kk/project/alphagen/file/ensemble_alpha.csv')
+    df = data.make_dataframe(ensemble_alpha)
+    # 单个因子
     # expr = Mul(EMA(Sub(Delta(Mul(Log(open_),Constant(-30.0)),50),Constant(-0.01)),40),Mul(Div(Abs(EMA(low,50)),close),Constant(0.01)))
-    expr = Mul(Abs(vwap),Div(Constant(-30.0),Mul(Mul(close,Constant(-0.01)),Constant(-0.5))))
-    data_df = data.make_dataframe(expr.evaluate(data))
+    # expr = Mul(Abs(vwap),Div(Constant(-30.0),Mul(Mul(close,Constant(-0.01)),Constant(-0.5))))
+    # data_df = data.make_dataframe(expr.evaluate(data))
+    output_prefix = '/home/kk/project/alphagen/file/20241223'
+    qlib_backtest.run(df, output_prefix=output_prefix)
 
-    # path = "/home/kk/project/alphagen/backtest/" + datetime.now().strftime("%Y%m%d")
-    qlib_backtest.run(data_df)
+def fun2():
+    # # 加载回测报告 (report.pkl)
+    # with open('/home/kk/project/alphagen/file/20241223-report.pkl', 'rb') as f:
+    #     report = pickle.load(f)
+    #     print(report)  # 打印报告内容
+    #
+    # 加载回测图表 (graph.pkl)
+    # with open('/home/kk/project/alphagen/file/20241223-graph.pkl', 'rb') as f:
+    #     graph = pickle.load(f)
+    #     print(graph)  # 打印图表数据，具体如何显示取决于图表的类型
+    with open('/home/kk/project/alphagen/file/20241223-graph.pkl', 'rb') as f:
+        graph = pickle.load(f)
+        # 假设 graph 是一个 matplotlib 图形对象
+        graph.show()
+
+if __name__ == "__main__":
+    fun1()
+    # fun2()
+
+
+
