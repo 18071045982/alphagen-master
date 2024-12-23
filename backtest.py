@@ -162,18 +162,10 @@ def fun1():
                      end_time='2022-12-31')
     # 因子组合
     POOL_PATH = '/home/kk/project/alphagen/checkpoint/new_all_5_2_20241202160424/100352_steps_pool.json'
-    # data, latest_date = load_recent_data(instrument='csi300', window_size=365, offset=1)
-    # pd.DataFrame(data.data.cpu().numpy()).to_csv('/home/kk/project/alphagen/file/data_cpu.csv')
     calculator = QLibStockDataCalculator(data=data, target=None)
     exprs, weights = load_alpha_pool_by_path(POOL_PATH)
     ensemble_alpha = calculator.make_ensemble_alpha(exprs, weights)
-    # ensemble_alpha_cpu = ensemble_alpha.cpu()
-    # pd.DataFrame(ensemble_alpha_cpu.numpy()).to_csv('/home/kk/project/alphagen/file/ensemble_alpha.csv')
     df = data.make_dataframe(ensemble_alpha)
-    # 单个因子
-    # expr = Mul(EMA(Sub(Delta(Mul(Log(open_),Constant(-30.0)),50),Constant(-0.01)),40),Mul(Div(Abs(EMA(low,50)),close),Constant(0.01)))
-    # expr = Mul(Abs(vwap),Div(Constant(-30.0),Mul(Mul(close,Constant(-0.01)),Constant(-0.5))))
-    # data_df = data.make_dataframe(expr.evaluate(data))
     output_prefix = '/home/kk/project/alphagen/file/20241223'
     qlib_backtest.run(df, output_prefix=output_prefix)
 
@@ -193,8 +185,8 @@ def fun2():
         graph.show()
 
 if __name__ == "__main__":
-    fun1()
-    # fun2()
+    # fun1()
+    fun2()
 
 
 
