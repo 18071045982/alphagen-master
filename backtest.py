@@ -64,8 +64,9 @@ class QlibBacktest:
     def __init__(
         self,
         benchmark: str = "SH000300",
-        top_k: int = 30,
-        n_drop: Optional[int] = None,
+        top_k: int = 50,
+        # n_drop: Optional[int] = None,
+        n_drop: int = 5,
         deal: str = "close",
         open_cost: float = 0.0015,
         close_cost: float = 0.0015,
@@ -158,8 +159,8 @@ class QlibBacktest:
 def fun1():
     qlib_backtest = QlibBacktest()
     data = StockData(instrument='csi300',
-                     start_time='2021-01-01',
-                     end_time='2022-12-31')
+                     start_time='2023-01-01',
+                     end_time='2023-12-31')
     # 因子组合
     POOL_PATH = '/home/kk/project/alphagen/checkpoint/new_all_5_2_20241202160424/100352_steps_pool.json'
     calculator = QLibStockDataCalculator(data=data, target=None)
