@@ -186,8 +186,8 @@ def fun2():
         graph.show()
 
 if __name__ == "__main__":
-    # fun1()
-    fun2()
+    fun1()
+    # fun2()
 
 
 

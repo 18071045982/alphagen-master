@@ -58,7 +58,7 @@ class TopKSwapNStrategy(BaseSignalStrategy, Strategy):
             if stock_id in unbuyable:
                 continue
 
-            can_swap = len(to_buy) >= self.n_swap and holding_priority and signal[stock_id] > signal[holding_priority[-1]]
+            can_swap = len(to_buy) <= self.n_swap and holding_priority and signal[stock_id] > signal[holding_priority[-1]]
             if can_swap:
                 to_sell.append(holding_priority.pop())
                 to_buy.append(stock_id)
