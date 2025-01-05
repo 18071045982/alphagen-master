@@ -162,12 +162,14 @@ def fun1():
                      start_time='2023-01-01',
                      end_time='2023-12-31')
     # 因子组合
-    POOL_PATH = '/home/kk/project/alphagen/checkpoint/new_all_5_2_20241202160424/100352_steps_pool.json'
+    # new_all_10_7_20250105152917/10240_steps_pool.json   30720、28672、26624、24576、22528、20480、18432、16384、14336、12288、10240
+    # new_all_5_2_20241202160424/20480_steps_pool.json
+    POOL_PATH = '/home/kk/project/alphagen/checkpoint/new_all_10_7_20250105152917/4096_steps_pool.json'
     calculator = QLibStockDataCalculator(data=data, target=None)
     exprs, weights = load_alpha_pool_by_path(POOL_PATH)
     ensemble_alpha = calculator.make_ensemble_alpha(exprs, weights)
     df = data.make_dataframe(ensemble_alpha)
-    output_prefix = '/home/kk/project/alphagen/file/20241223'
+    output_prefix = '/home/kk/project/alphagen/file/20250105'
     qlib_backtest.run(df, output_prefix=output_prefix)
 
 def fun2():
@@ -180,7 +182,7 @@ def fun2():
     # with open('/home/kk/project/alphagen/file/20241223-graph.pkl', 'rb') as f:
     #     graph = pickle.load(f)
     #     print(graph)  # 打印图表数据，具体如何显示取决于图表的类型
-    with open('/home/kk/project/alphagen/file/20241223-graph.pkl', 'rb') as f:
+    with open('/home/kk/project/alphagen/file/20250105-graph.pkl', 'rb') as f:
         graph = pickle.load(f)
         # 假设 graph 是一个 matplotlib 图形对象
         graph.show()
